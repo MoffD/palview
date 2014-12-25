@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
 					{printf("X:%d-%d Y:%d-%d RGB:%d %d %d\n",x*scale,(x+1)*scale,y*scale,(y+1)*scale,2*(int)palColors[z].red,2*(int)palColors[z].green,2*(int)palColors[z].blue);}
 						z+=1;
 						SDL_Rect bigpix={x*scale,y*scale,(x+1)*scale,(y+1)*scale};
-						SDL_FillRect(screen,&bigpix, SDL_MapRGB(screen->format,(int)palColors[z].red*2,(int)palColors[z].green*2,(int)palColors[z].blue*2));
+						SDL_FillRect(screen,&bigpix, SDL_MapRGB(screen->format,((int)palColors[z].red*255)/63,((int)palColors[z].green*255)/63,((int)palColors[z].blue*255))/63);
 				}
 			}
 			SDL_Flip(screen);
