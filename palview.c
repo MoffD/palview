@@ -25,7 +25,7 @@
 typedef struct {unsigned char red;unsigned char green;unsigned char blue;}rgbcolor;
 
 int main(int argc, char *argv[]){
-	char* usage="Usage: palview -[hsd] palfile.pal\n";
+	char* usage="Usage: palview [OPTIONS] [FILE]\n\t-s [SCALE]\t:Pixel size for each color\n\t-d\t:Turn debugging output on\n\t-h\t:Display this help message\nEx:\tpalview -ds 32 ./myfile.pal\n";
 	if (argc==1){printf(usage);fflush(stdout);exit(0);}
 	int scale=0,i,j,debug=0;
 	
@@ -47,6 +47,7 @@ int main(int argc, char *argv[]){
 				case 'h':
 					printf(usage);
 					fflush(stdout);
+					exit(0);
 				break;
 				}
 			}
