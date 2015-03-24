@@ -1,23 +1,63 @@
+/*
+    Palette file viewer
+    Copyright (C) 2015  Daniel L
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <SDL/SDL.h>
-#include <stdbool.h>
 
 typedef struct {char red;char green;char blue;}rgbcolor;
 
 int main(int argc, char *argv[]){
+	char* usage="Usage: palview -[hsd] palfile.pal\n";
+	if (argc==1){printf(usage);fflush(stdout);exit(0);}
+	int scale=0,i,j,debug=0;
 	
+	for (i=1;i<argc;i++){//argument handler
+		if (argv[i][0]=='-'){
+			for (j=1;j<strlen(argv[i]);j++){
+				switch (argv[i][j])
+				{
+				case 's':
+					scale=strtol(argv[i+1],NULL,10);
+					printf("scale set to %d\n",scale);
+					fflush(stdout);
+				break;
+				case 'd':
+					debug=1;
+					printf("Debugging set\n");
+					fflush(stdout);
+				break;
+				case 'h':
+					printf(usage);
+					fflush(stdout);
+				break;
+				}
+			}
+		}
+	}
+	
+	if (scale<1){scale=16;}
 	
 	rgbcolor palColors[256];
 	
-	int scale;
-	if (argc>2)//DRAWING SCALE
-	{scale=strtol(argv[2],NULL,10);}
-	else
-	{scale=16;}
-	
-	FILE *palfile = fopen( argv[1], "r" );//READ FILE
+	FILE *palfile = fopen( argv[argc-1], "r" );//READ FILE
 	if ( palfile == 0 )
 	{
 			printf("Error: no readable file!\n");
@@ -40,32 +80,35 @@ int main(int argc, char *argv[]){
 			}
 		}
 		SDL_Event Events;
-		bool Run=true;
-		while (Run)
+		int Run=1;
+		while (Run==1)
 		{
 			while (SDL_PollEvent(&Events))
 			{
 				if (Events.type == SDL_QUIT)
-					Run = false;
+					Run = 0;
 			}
 			SDL_Init( SDL_INIT_EVERYTHING );
 			SDL_Surface* screen = NULL;
 			screen = SDL_SetVideoMode( 16*scale, 16*scale, 32, SDL_SWSURFACE );
-			SDL_WM_SetCaption(argv[1],0);
+			SDL_WM_SetCaption(argv[argc-1],0);
 			int x,y,z=0;
 			for (y=0;y<16;y+=1)
 			{
 				for (x=0;x<16;x+=1)
 				{
-					if (argc>3)
+					if (debug==1)
 					{printf("X:%d-%d Y:%d-%d RGB:%d %d %d\n",x*scale,(x+1)*scale,y*scale,(y+1)*scale,2*(int)palColors[z].red,2*(int)palColors[z].green,2*(int)palColors[z].blue);}
 						z+=1;
 						SDL_Rect bigpix={x*scale,y*scale,(x+1)*scale,(y+1)*scale};
-						SDL_FillRect(screen,&bigpix, SDL_MapRGB(screen->format,((int)palColors[z].red*255)/63,((int)palColors[z].green*255)/63,((int)palColors[z].blue*255))/63);
+						SDL_FillRect(screen,&bigpix, SDL_MapRGB(screen->format,
+						((int)palColors[z].red*255)/63,
+						((int)palColors[z].green*255)/63,
+						((int)palColors[z].blue*255))/63);
 				}
 			}
 			SDL_Flip(screen);
-			SDL_Delay(1000);
+			SDL_Delay(100);
 		}
 	}
 	return 1;
