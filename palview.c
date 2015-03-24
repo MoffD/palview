@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <SDL/SDL.h>
 
-typedef struct {char red;char green;char blue;}rgbcolor;
+typedef struct {unsigned char red;unsigned char green;unsigned char blue;}rgbcolor;
 
 int main(int argc, char *argv[]){
 	char* usage="Usage: palview -[hsd] palfile.pal\n";
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]){
 	}
 	else 
 	{
-		char red,green,blue;
+		unsigned char red,green,blue;
 		int i=0;
 		while  (!feof(palfile))
 		{
@@ -98,13 +98,13 @@ int main(int argc, char *argv[]){
 				for (x=0;x<16;x+=1)
 				{
 					if (debug==1)
-					{printf("X:%d-%d Y:%d-%d RGB:%d %d %d\n",x*scale,(x+1)*scale,y*scale,(y+1)*scale,2*(int)palColors[z].red,2*(int)palColors[z].green,2*(int)palColors[z].blue);}
+					{printf("X:%d-%d Y:%d-%d RGB:%d %d %d\n",x*scale,(x+1)*scale,y*scale,(y+1)*scale,palColors[z+1].red,palColors[z+1].green,palColors[z+1].blue);}
 						z+=1;
 						SDL_Rect bigpix={x*scale,y*scale,(x+1)*scale,(y+1)*scale};
 						SDL_FillRect(screen,&bigpix, SDL_MapRGB(screen->format,
-						((int)palColors[z].red*255)/63,
-						((int)palColors[z].green*255)/63,
-						((int)palColors[z].blue*255))/63);
+						palColors[z].red,
+						palColors[z].green,
+						palColors[z].blue));
 				}
 			}
 			SDL_Flip(screen);
