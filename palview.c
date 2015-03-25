@@ -25,9 +25,9 @@
 typedef struct {unsigned char red;unsigned char green;unsigned char blue;}rgbcolor;
 
 int main(int argc, char *argv[]){
-	char* usage="Usage: palview [OPTIONS] [FILE]\n\t-s [SCALE]\t:Pixel size for each color\n\t-d\t:Turn debugging output on\n\t-h\t:Display this help message\nEx:\tpalview -ds 32 ./myfile.pal\n";
+	char* usage="Usage: palview [OPTIONS] [FILE]\n\t-s [SCALE]\t:Pixel size for each color (Default 16)\n\t-d\t:Turn debugging output on\n\t-h\t:Display this help message\nEx:\tpalview -ds 32 ./myfile.pal\n";
 	if (argc==1){printf(usage);fflush(stdout);exit(0);}
-	int scale=0,i,j,debug=0;
+	int scale=0,i,j,debug=0,dbgout=0;
 	
 	for (i=1;i<argc;i++){//argument handler
 		if (argv[i][0]=='-'){
@@ -35,19 +35,24 @@ int main(int argc, char *argv[]){
 				switch (argv[i][j])
 				{
 				case 's':
+					if (i<argc-1){
 					scale=strtol(argv[i+1],NULL,10);
 					printf("scale set to %d\n",scale);
 					fflush(stdout);
+					}
 				break;
 				case 'd':
 					debug=1;
-					printf("Debugging set\n");
+					printf("Debugging Enabled\n");
 					fflush(stdout);
 				break;
 				case 'h':
 					printf(usage);
 					fflush(stdout);
 					exit(0);
+				break;
+				default:
+					printf("Ignoring unknown option %c, use -h for a list of options\n",argv[i][j]);
 				break;
 				}
 			}
@@ -98,16 +103,27 @@ int main(int argc, char *argv[]){
 			{
 				for (x=0;x<16;x+=1)
 				{
-					if (debug==1)
-					{printf("X:%d-%d Y:%d-%d RGB:%d %d %d\n",x*scale,(x+1)*scale,y*scale,(y+1)*scale,palColors[z+1].red,palColors[z+1].green,palColors[z+1].blue);}
-						z+=1;
-						SDL_Rect bigpix={x*scale,y*scale,(x+1)*scale,(y+1)*scale};
-						SDL_FillRect(screen,&bigpix, SDL_MapRGB(screen->format,
-						palColors[z].red,
-						palColors[z].green,
-						palColors[z].blue));
+					
+					if (debug==1 && dbgout==0)//debug prints out current palette file colors
+						{printf("X:%d-%d Y:%d-%d RGB:%d %d %d\n",
+							x*scale,
+							(x+1)*scale,
+							y*scale,
+							(y+1)*scale,
+							palColors[z].red,
+							palColors[z].green,
+							palColors[z].blue);
+							fflush(stdout);
+						}
+					SDL_Rect bigpix={x*scale,y*scale,(x+1)*scale,(y+1)*scale};
+					SDL_FillRect(screen,&bigpix, SDL_MapRGB(screen->format,
+					palColors[z].red,
+					palColors[z].green,
+					palColors[z].blue));
+					z+=1;
 				}
 			}
+			dbgout=1;
 			SDL_Flip(screen);
 			SDL_Delay(100);
 		}
