@@ -26,8 +26,8 @@ typedef struct {unsigned char red;unsigned char green;unsigned char blue;}rgbcol
 
 int main(int argc, char *argv[]){
 	char* usage="Usage: palview [OPTIONS] [FILE]\n\t-s [SCALE]\t:Pixel size for each color (Default 16)\n\t-d\t:Turn debugging output on\n\t-h\t:Display this help message\nEx:\tpalview -ds 32 ./myfile.pal\n";
-	if (argc==1){printf(usage);fflush(stdout);exit(0);}
-	int scale=0,i,j,debug=0,dbgout=0;
+	if (argc==1){printf(usage);exit(0);}
+	int scale=16,i,j,debug=0,dbgout=0;
 	
 	for (i=1;i<argc;i++){//argument handler
 		if (argv[i][0]=='-'){
@@ -48,7 +48,6 @@ int main(int argc, char *argv[]){
 				break;
 				case 'h':
 					printf(usage);
-					fflush(stdout);
 					exit(0);
 				break;
 				default:
@@ -58,8 +57,6 @@ int main(int argc, char *argv[]){
 			}
 		}
 	}
-	
-	if (scale<1){scale=16;}
 	
 	rgbcolor palColors[256];
 	
