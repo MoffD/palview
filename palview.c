@@ -21,24 +21,40 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <SDL/SDL.h>
+#include <tinyfiledialogs.h>
 
-typedef struct {unsigned char red;unsigned char green;unsigned char blue;}rgbcolor;
+typedef struct 
+{
+	unsigned char red;
+	unsigned char green;
+	unsigned char blue;
+}
+rgbcolor;
 
-int main(int argc, char *argv[]){
-	char* usage="Usage: palview [OPTIONS] [FILE]\n\t-s [SCALE]\t:Pixel size for each color (Default 16)\n\t-d\t:Turn debugging output on\n\t-h\t:Display this help message\nEx:\tpalview -ds 32 ./myfile.pal\n";
-	if (argc==1){printf(usage);exit(0);}
-	int scale=16,i,j,debug=0,dbgout=0;
+int main(int argc, char *argv[])
+{
+	char * usage="Usage: palview [OPTIONS] <FILE>\n\t-s <SCALE>\t:Pixel size for each color (Default 16)\n\t-d\t:Turn debugging output on\n\t-h\t:Display this help message\nEx:\tpalview -ds 32 ./myfile.pal\n";
+	char const * palpath;
 	
-	for (i=1;i<argc;i++){//argument handler
-		if (argv[i][0]=='-'){
-			for (j=1;j<strlen(argv[i]);j++){
+	if (argc==1){palpath=tinyfd_openFileDialog("Open PAL File","",0,NULL,NULL,0);}
+	
+	else {palpath=argv[argc-1];}
+	int scale=16,i,j,debug=0,firstrun=0;
+	
+	for (i=1;i<argc;i++)
+	{//argument handler
+		if (argv[i][0]=='-')
+		{
+			for (j=1;j<strlen(argv[i]);j++)
+			{
 				switch (argv[i][j])
 				{
 				case 's':
-					if (i<argc-1){
-					scale=strtol(argv[i+1],NULL,10);
-					printf("scale set to %d\n",scale);
-					fflush(stdout);
+					if (i<argc-1)
+					{
+						scale=strtol(argv[i+1],NULL,10);
+						printf("scale set to %d\n",scale);
+						fflush(stdout);
 					}
 				break;
 				case 'd':
@@ -60,10 +76,10 @@ int main(int argc, char *argv[]){
 	
 	rgbcolor palColors[256];
 	
-	FILE *palfile = fopen( argv[argc-1], "r" );//READ FILE
+	FILE *palfile = fopen(palpath, "rb" );//READ FILE
 	if ( palfile == 0 )
 	{
-			printf("Error: no readable file!\n");
+		printf("Error: no readable file!\n");
 	}
 	else 
 	{
@@ -76,33 +92,77 @@ int main(int argc, char *argv[]){
 			blue=fgetc(palfile);
 			if (red!=-1)
 			{
-			palColors[i].red=red;
-			palColors[i].green=green;
-			palColors[i].blue=blue;
-			i+=1;
+				palColors[i].red=red;
+				palColors[i].green=green;
+				palColors[i].blue=blue;
+				i+=1;
 			}
 		}
 		SDL_Event Events;
-		int Run=1;
-		while (Run==1)
+		int running=1,mouse_x,mouse_y,current_offset;
+		while (running==1)
 		{
 			while (SDL_PollEvent(&Events))
 			{
-				if (Events.type == SDL_QUIT)
-					Run = 0;
+				switch(Events.type)//event handling
+				{
+					case SDL_QUIT:
+						exit(0);
+						//running = 0;
+					break;
+					
+					case SDL_KEYDOWN://key press events
+						switch(Events.key.keysym.sym)
+						{
+							case SDLK_s:
+								printf("S!");
+								fflush(stdout);
+							break;
+							case SDLK_q:
+							case SDLK_ESCAPE:
+								exit(0);
+							break;
+							case SDLK_l:
+								main(argc,argv);
+							break;
+						}
+					break;
+					
+					case SDL_MOUSEBUTTONDOWN://color selection dialog
+						SDL_GetMouseState(&mouse_x,&mouse_y);
+						current_offset=(mouse_y/scale)*16+(mouse_x/scale);
+						unsigned char * output;
+						//tinyfd_colorChooser("Edit Color",NULL,&palColors[current_offset],&palColors[current_offset]);
+						
+						printf(
+							"x:%d y:%d i:%d r:%d g:%d b:%d\n",
+							mouse_x/scale,
+							mouse_y/scale,
+							current_offset,
+							palColors[current_offset].red,
+							palColors[current_offset].green,
+							palColors[current_offset].blue
+							);
+						fflush(stdout);
+						
+					break;
+				}
 			}
 			SDL_Init( SDL_INIT_EVERYTHING );
 			SDL_Surface* screen = NULL;
+			if (scale<1){printf("ERROR: Scale less than 1!\n");exit(0);}
 			screen = SDL_SetVideoMode( 16*scale, 16*scale, 32, SDL_SWSURFACE );
-			SDL_WM_SetCaption(argv[argc-1],0);
+			SDL_WM_SetCaption(palpath,0);
 			int x,y,z=0;
+			
 			for (y=0;y<16;y+=1)
 			{
 				for (x=0;x<16;x+=1)
 				{
 					
-					if (debug==1 && dbgout==0)//debug prints out current palette file colors
-						{printf("X:%d-%d Y:%d-%d RGB:%d %d %d\n",
+					if (debug==1 && firstrun==0)//debug prints out current palette file colors
+					{	
+						printf("X:%d-%d Y:%d-%d RGB:%d %d %d\n",
 							x*scale,
 							(x+1)*scale,
 							y*scale,
@@ -110,8 +170,8 @@ int main(int argc, char *argv[]){
 							palColors[z].red,
 							palColors[z].green,
 							palColors[z].blue);
-							fflush(stdout);
-						}
+						fflush(stdout);
+					}
 					SDL_Rect bigpix={x*scale,y*scale,(x+1)*scale,(y+1)*scale};
 					SDL_FillRect(screen,&bigpix, SDL_MapRGB(screen->format,
 					palColors[z].red,
@@ -120,7 +180,7 @@ int main(int argc, char *argv[]){
 					z+=1;
 				}
 			}
-			dbgout=1;
+			firstrun=1;
 			SDL_Flip(screen);
 			SDL_Delay(100);
 		}
